@@ -305,7 +305,7 @@ def YoloLoss(anchors, classes=80, ignore_thresh=0.5):
         wh_loss = obj_mask * box_loss_scale * \
             tf.reduce_sum(tf.square(true_wh - pred_wh), axis=-1)
         # obj_loss = binary_crossentropy(true_obj, pred_obj)
-        obj_loss = tf.reduce_sum(tf.nn.weighted_cross_entropy_with_logits(true_obj, pred_obj, tf.constant(2.0)), axis=-1)
+        obj_loss = tf.reduce_sum(tf.nn.weighted_cross_entropy_with_logits(true_obj, pred_obj, tf.constant(4.0)), axis=-1)
         obj_loss = obj_mask * obj_loss + \
             (1 - obj_mask) * ignore_mask * obj_loss
         # TODO: use binary_crossentropy instead

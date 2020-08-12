@@ -10,7 +10,7 @@ BATCH_SIZE=1
 NUM_CLASSES=11
 LEARNING_RATE=1e-3
 MODE='fit'
-TRANSFER='darknet'
+TRANSFER='none'
 
 
 python train.py \

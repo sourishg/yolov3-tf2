@@ -124,7 +124,14 @@ def main(_argv):
                 # freeze everything
                 freeze_all(model)
 
-        optimizer = tf.keras.optimizers.Adam(lr=FLAGS.learning_rate)
+        learning_rates = [5e-05, 5e-06]
+        learning_rate_boundaries = [200]
+        learning_rate_fn = tf.optimizers.schedules.PiecewiseConstantDecay(
+            boundaries=learning_rate_boundaries, values=learning_rates
+        )
+
+        # optimizer = tf.keras.optimizers.Adam(lr=learning_rate_fn)
+        optimizer = tf.optimizers.SGD(learning_rate=learning_rate_fn, momentum=0.9)
         loss = [YoloLoss(anchors[mask], classes=FLAGS.num_classes)
                 for mask in anchor_masks]
 
