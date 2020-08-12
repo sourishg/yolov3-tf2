@@ -175,7 +175,7 @@ def yolo_boxes(pred, anchors, classes):
     return bbox, objectness, class_probs, pred_box
 
 
-def yolo_nms(outputs, anchors, masks, num_classes):
+def yolo_nms(outputs, anchors, masks, classes):
     # boxes, conf, type
     b, c, t = [], [], []
 
@@ -188,7 +188,7 @@ def yolo_nms(outputs, anchors, masks, num_classes):
     confidence = tf.concat(c, axis=1)
     class_probs = tf.concat(t, axis=1)
 
-    if num_classes > 1:
+    if classes > 1:
         scores = confidence * class_probs
     else:
         scores = confidence
