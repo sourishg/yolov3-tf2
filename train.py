@@ -8,7 +8,8 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
     EarlyStopping,
     ModelCheckpoint,
-    TensorBoard
+    TensorBoard,
+    LearningRateScheduler
 )
 from yolov3_tf2.models import (
     YoloV3, YoloV3Tiny, YoloLoss,
@@ -41,6 +42,13 @@ flags.DEFINE_float('learning_rate', 1e-4, 'learning rate')
 flags.DEFINE_integer('num_classes', 11, 'number of classes in the model')
 flags.DEFINE_integer('weights_num_classes', 80, 'specify num class for `weights` file if different, '
                      'useful in transfer learning with different number of classes')
+
+
+def scheduler(epoch, lr):
+    if epoch < 10:
+        return lr
+    else:
+        return lr * tf.math.exp(-0.1)
 
 
 def main(_argv):
@@ -124,14 +132,8 @@ def main(_argv):
                 # freeze everything
                 freeze_all(model)
 
-        learning_rates = [5e-05, 5e-06]
-        learning_rate_boundaries = [500]
-        learning_rate_fn = tf.optimizers.schedules.PiecewiseConstantDecay(
-            boundaries=learning_rate_boundaries, values=learning_rates
-        )
 
         optimizer = tf.keras.optimizers.Adam(lr=FLAGS.learning_rate)
-        # optimizer = tf.optimizers.SGD(learning_rate=learning_rate_fn, momentum=0.9)
         loss = [YoloLoss(anchors[mask], classes=FLAGS.num_classes)
                 for mask in anchor_masks]
 
@@ -188,6 +190,7 @@ def main(_argv):
 
             callbacks = [
                 ReduceLROnPlateau(verbose=1),
+                LearningRateScheduler(scheduler, verbose=1),
                 ModelCheckpoint('checkpoints/yolov3_train_{epoch}.tf',
                                 verbose=1, save_weights_only=True),
                 TensorBoard(log_dir='logs')
