@@ -29,12 +29,12 @@ flags.DEFINE_float('yolo_score_threshold', 0.5, 'score threshold')
 
 
 yolo_anchors = np.array([(4, 4), (8, 8), (16, 16), (16, 20), (20, 16),
-                         (32, 32), (32, 25), (25, 32), (64, 64)],
+                         (40, 32), (64, 64), (128, 100), (256, 200)],
                         np.float32) / 1280
 yolo_anchor_masks = np.array([[6, 7, 8], [3, 4, 5], [0, 1, 2]])
 
 yolo_tiny_anchors = np.array([(4, 4), (8, 8), (16, 16),
-                              (16, 16), (32, 32),  (64, 64)],
+                              (64, 40), (128, 100), (256, 200)],
                              np.float32) / 1280
 yolo_tiny_anchor_masks = np.array([[3, 4, 5], [0, 1, 2]])
 
