@@ -156,7 +156,7 @@ def yolo_boxes(pred, anchors, classes):
         pred, (2, 2, 1, classes), axis=-1)
 
     box_xy = tf.sigmoid(box_xy)
-    objectness = tf.sigmoid(objectness)
+    # objectness = tf.sigmoid(objectness)
     class_probs = tf.sigmoid(class_probs)
     pred_box = tf.concat((box_xy, box_wh), axis=-1)  # original xywh for loss
 
@@ -189,9 +189,9 @@ def yolo_nms(outputs, anchors, masks, classes):
     class_probs = tf.concat(t, axis=1)
 
     if classes > 1:
-        scores = confidence * class_probs
+        scores = tf.sigmoid(confidence) * class_probs
     else:
-        scores = confidence
+        scores = tf.sigmoid(confidence)
     boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
         boxes=tf.reshape(bbox, (tf.shape(bbox)[0], -1, 1, 4)),
         scores=tf.reshape(
