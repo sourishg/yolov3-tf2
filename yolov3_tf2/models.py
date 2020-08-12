@@ -27,14 +27,15 @@ flags.DEFINE_integer('yolo_max_boxes', 100,
 flags.DEFINE_float('yolo_iou_threshold', 0.5, 'iou threshold')
 flags.DEFINE_float('yolo_score_threshold', 0.5, 'score threshold')
 
-yolo_anchors = np.array([(10, 13), (16, 30), (33, 23), (30, 61), (62, 45),
-                         (59, 119), (116, 90), (156, 198), (373, 326)],
-                        np.float32) / 416
+
+yolo_anchors = np.array([(4, 4), (8, 8), (16, 16), (16, 20), (20, 16),
+                         (32, 32), (32, 25), (25, 32), (64, 64)],
+                        np.float32) / 1280
 yolo_anchor_masks = np.array([[6, 7, 8], [3, 4, 5], [0, 1, 2]])
 
-yolo_tiny_anchors = np.array([(10, 14), (23, 27), (37, 58),
-                              (81, 82), (135, 169),  (344, 319)],
-                             np.float32) / 416
+yolo_tiny_anchors = np.array([(4, 4), (8, 8), (16, 16),
+                              (16, 16), (32, 32),  (64, 64)],
+                             np.float32) / 1280
 yolo_tiny_anchor_masks = np.array([[3, 4, 5], [0, 1, 2]])
 
 
@@ -174,7 +175,7 @@ def yolo_boxes(pred, anchors, classes):
     return bbox, objectness, class_probs, pred_box
 
 
-def yolo_nms(outputs, anchors, masks, classes):
+def yolo_nms(outputs, anchors, masks, num_classes):
     # boxes, conf, type
     b, c, t = [], [], []
 
@@ -187,7 +188,10 @@ def yolo_nms(outputs, anchors, masks, classes):
     confidence = tf.concat(c, axis=1)
     class_probs = tf.concat(t, axis=1)
 
-    scores = confidence * class_probs
+    if num_classes > 1:
+        scores = confidence * class_probs
+    else:
+        scores = confidence
     boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
         boxes=tf.reshape(bbox, (tf.shape(bbox)[0], -1, 1, 4)),
         scores=tf.reshape(
@@ -300,7 +304,8 @@ def YoloLoss(anchors, classes=80, ignore_thresh=0.5):
             tf.reduce_sum(tf.square(true_xy - pred_xy), axis=-1)
         wh_loss = obj_mask * box_loss_scale * \
             tf.reduce_sum(tf.square(true_wh - pred_wh), axis=-1)
-        obj_loss = binary_crossentropy(true_obj, pred_obj)
+        # obj_loss = binary_crossentropy(true_obj, pred_obj)
+        obj_loss = tf.reduce_sum(tf.nn.weighted_cross_entropy_with_logits(true_obj, pred_obj, tf.constant(2.0)), axis=-1)
         obj_loss = obj_mask * obj_loss + \
             (1 - obj_mask) * ignore_mask * obj_loss
         # TODO: use binary_crossentropy instead
