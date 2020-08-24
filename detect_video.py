@@ -10,16 +10,30 @@ from yolov3_tf2.dataset import transform_images
 from yolov3_tf2.utils import draw_outputs
 
 
-flags.DEFINE_string('classes', './data/coco.names', 'path to classes file')
-flags.DEFINE_string('weights', './checkpoints/yolov3.tf',
+flags.DEFINE_string('weights', './checkpoints/yolov3_train_49.tf',
                     'path to weights file')
-flags.DEFINE_boolean('tiny', False, 'yolov3 or yolov3-tiny')
-flags.DEFINE_integer('size', 416, 'resize images to')
-flags.DEFINE_string('video', './data/video.mp4',
+flags.DEFINE_boolean('tiny', True, 'yolov3 or yolov3-tiny')
+flags.DEFINE_integer('size', 1280, 'resize images to')
+flags.DEFINE_string('video', '/home/sourish/Downloads/fun360.MP4',
                     'path to video file or number for webcam)')
 flags.DEFINE_string('output', None, 'path to output video')
 flags.DEFINE_string('output_format', 'XVID', 'codec used in VideoWriter when saving video to file')
-flags.DEFINE_integer('num_classes', 80, 'number of classes in the model')
+flags.DEFINE_integer('num_classes', 11, 'number of classes in the model')
+
+
+class_map = {
+    0: 'bird',
+    1: 'fixed_wing_uav',
+    2: 'rotor_uav',
+    3: 'ga_plane',
+    4: 'ca_plane',
+    5: 'heli',
+    6: 'ultra_light',
+    7: 'balloon',
+    8: 'blimp',
+    9: 'ufo',
+    10: 'military'
+}
 
 
 def main(_argv):
@@ -32,11 +46,8 @@ def main(_argv):
     else:
         yolo = YoloV3(classes=FLAGS.num_classes)
 
-    yolo.load_weights(FLAGS.weights)
+    yolo.load_weights(FLAGS.weights).expect_partial()
     logging.info('weights loaded')
-
-    class_names = [c.strip() for c in open(FLAGS.classes).readlines()]
-    logging.info('classes loaded')
 
     times = []
 
@@ -73,13 +84,13 @@ def main(_argv):
         times.append(t2-t1)
         times = times[-20:]
 
-        img = draw_outputs(img, (boxes, scores, classes, nums), class_names)
+        img = draw_outputs(img, (boxes, scores, classes, nums), class_map)
         img = cv2.putText(img, "Time: {:.2f}ms".format(sum(times)/len(times)*1000), (0, 30),
                           cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 2)
         if FLAGS.output:
             out.write(img)
         cv2.imshow('output', img)
-        if cv2.waitKey(1) == ord('q'):
+        if cv2.waitKey(30) == ord('q'):
             break
 
     cv2.destroyAllWindows()
